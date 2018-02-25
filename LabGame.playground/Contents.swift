@@ -34,12 +34,12 @@ enum Direction : Int, Rotate, Codable  {
     }
 }
 
-enum Box : Rotate, CustomStringConvertible {
+enum Box : Rotate, CustomStringConvertible, Codable {
     case None                               // X
     case Cross                              // +
     case Linear(orientation: Orientation)   // - |
-    case Curved(direction: Direction)       // L
-    case Intersection(direction: Direction) // T
+    case Curved(direction: Direction)       // L  ∨∧><
+    case Intersection(direction: Direction) // T  ⊤⊣⊥⊢
     
     mutating func rotate(_ rotation: Rotation) {
         switch self {
@@ -60,15 +60,89 @@ enum Box : Rotate, CustomStringConvertible {
     }
     
     var description: String {
+//        X
 //        +
 //        -|
 //        ⊤⊣⊥⊢
 //        ∨∧><
         return "-"
     }
+    
+    // Custom Encode / Decode
+    // Enum with Associated Values Cannot Have a Raw Value and cannot be auto Codable
+    
+    struct BoxStruct : Codable {
+        let rawValue: Int
+        let orientation: Orientation?
+        let direction: Direction?
+    }
+    
+    enum DecodeError : Error {
+        case WrongRawValue
+        case MissingOrientation
+        case MissingDirection
+    }
+    
+    init(from decoder: Decoder) throws {
+        let boxStruct = try BoxStruct(from: decoder)
+        
+        switch boxStruct.rawValue {
+        case 0:
+            self = Box.None
+        case 1:
+            self = Box.Cross
+        case 2:
+            if let o = boxStruct.orientation {
+                self = Box.Linear(orientation: o)
+            }
+            else {
+                throw DecodeError.MissingOrientation
+            }
+        case 3:
+            if let d = boxStruct.direction {
+                self = Box.Curved(direction: d)
+            }
+            else {
+                throw DecodeError.MissingDirection
+            }
+        case 4:
+            if let d = boxStruct.direction {
+                self = Box.Intersection(direction: d)
+            }
+            else {
+                throw DecodeError.MissingDirection
+            }
+        default:
+            throw DecodeError.WrongRawValue
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var rawValue = 0
+        var orientation: Orientation?
+        var direction: Direction?
+        
+        switch self {
+        case .None:
+            rawValue = 0
+        case .Cross:
+            rawValue = 1
+        case let .Linear(o):
+            rawValue = 2
+            orientation = o
+        case let .Curved(d):
+            rawValue = 3
+            direction = d
+        case let .Intersection(d):
+            rawValue = 4
+            direction = d
+        }
+
+        try BoxStruct(rawValue: rawValue, orientation: orientation, direction: direction).encode(to: encoder)
+    }
 }
 
-struct Table : CustomStringConvertible {
+struct Table : CustomStringConvertible, Codable {
     var rows: Int
     var columns: Int
     var boxes: [Box]
@@ -108,4 +182,12 @@ struct Table : CustomStringConvertible {
 
 var t = Table(rows: 5, columns: 5)
 print(t.description)
+
+let data = try JSONEncoder().encode(t)
+let string = String(data: data, encoding: .utf8)!
+print(string)
+
+let t2 = try JSONDecoder().decode(Table.self, from: data)
+print(t2.description)
+
 
