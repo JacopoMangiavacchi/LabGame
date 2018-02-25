@@ -60,12 +60,41 @@ enum Box : Rotate, CustomStringConvertible, Codable {
     }
     
     var description: String {
-//        X
-//        +
-//        -|
-//        ⊤⊣⊥⊢
-//        ∨∧><
-        return "-"
+        switch self {
+        case .None:
+            return "X"
+        case .Cross:
+            return "+"
+        case let .Linear(orientation):
+            switch orientation {
+            case .Horizontal:
+                return "-"
+            case .Vertical:
+                return "|"
+            }
+        case let .Curved(direction):
+            switch direction {
+            case .North:
+                return "∨"
+            case .East:
+                return "∧"
+            case .South:
+                return ">"
+            case .West:
+                return "<"
+            }
+        case let .Intersection(direction):
+            switch direction {
+            case .North:
+                return "⊤"
+            case .East:
+                return "⊣"
+            case .South:
+                return "⊥"
+            case .West:
+                return "⊢"
+            }
+        }
     }
     
     // Custom Encode / Decode
@@ -150,7 +179,7 @@ struct Table : CustomStringConvertible, Codable {
     init(rows: Int, columns: Int) {
         self.rows = rows
         self.columns = columns
-        boxes = [Box](repeating: Box.Linear(orientation: .Horizontal), count: rows * columns)
+        boxes = [Box](repeating: Box.None, count: rows * columns)
     }
     
     var description: String {
