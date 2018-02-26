@@ -171,25 +171,29 @@ enum Box : Rotate, CustomStringConvertible, Codable {
     }
 }
 
-struct Block : Codable {
+struct Block : Codable, Hashable, Equatable {
     let row: Int
     let col: Int
     let width: Int
     let heigth: Int
+    
+    func containRowCol(rowcol: (Int, Int)) -> Bool {
+        return (rowcol.0 >= row && rowcol.1 >= col && rowcol.0 < row + heigth && rowcol.1 < col + width)
+    }
 }
 
 struct Table : CustomStringConvertible, Codable {
     var rows: Int
     var columns: Int
     internal var boxes: [Box]
-    internal var blocks: [Block]
+    internal var blocks: Set<Block>
 
     
     init(rows: Int, columns: Int) {
         self.rows = rows
         self.columns = columns
         boxes = [Box](repeating: Box.None, count: rows * columns)
-        blocks = [Block]()
+        blocks = Set<Block>()
     }
     
     var description: String {
@@ -223,7 +227,7 @@ struct Table : CustomStringConvertible, Codable {
     }
     
     mutating func addBlock(block: Block) {
-        blocks.append(block)
+        blocks.insert(block)
     }
     
     mutating func move(row: Int, col: Int, direction: Direction) -> Int {
@@ -237,8 +241,9 @@ struct Table : CustomStringConvertible, Codable {
     mutating func move(rowcolArray: [(Int,Int)], direction: Direction) -> Int {
         let cleanedRowColArray = _getCleanRowColArray(rowcolArray: rowcolArray, direction: direction)
         let allRowColToMoveArray = _getAllRowColToMoveArray(rowcolArray: cleanedRowColArray, direction: direction)
+        let blocksToMoveSet = _getAllBlocksToMove(rowcolArray: allRowColToMoveArray)
         
-        print(allRowColToMoveArray)
+        print(blocksToMoveSet)
         
         
         
@@ -299,6 +304,21 @@ struct Table : CustomStringConvertible, Codable {
         
         return allRowColArray
     }
+    
+    internal func _getAllBlocksToMove(rowcolArray: [(Int,Int)]) -> Set<Block> {
+        var blocksToMoveSet = Set<Block>()
+        
+        for block in blocks {
+            for rowcol in rowcolArray {
+                if block.containRowCol(rowcol: rowcol) {
+                    blocksToMoveSet.insert(block)
+                    break
+                }
+            }
+        }
+        
+        return blocksToMoveSet
+    }
 }
 
 
@@ -318,10 +338,8 @@ t[1,2]
 t[1,2] = Box.Linear(orientation: .Horizontal)
 t[1,2]?.rotate(.Left)
 t[1,2]
-t.move(rowcolArray: [(1, 2), (3, 2)], direction: .North)
-
-
-t.addBlock(block: Block(row: 0, col: 0, width: 2, heigth: 2))
+t.addBlock(block: Block(row: 0, col: 0, width: 3, heigth: 3))
+t.move(rowcolArray: [(0, 3), (3, 2)], direction: .North)
 
 let data = try JSONEncoder().encode(t)
 let string = String(data: data, encoding: .utf8)!
