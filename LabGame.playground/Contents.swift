@@ -264,31 +264,41 @@ struct Table : CustomStringConvertible, Codable {
     }
 
     internal mutating func _moveEntireRowOrCol(rowOrCol: Int, direction: Direction) {
+        var temp: Box!
+        var start = 0
+        var end = 0
+        var increment = 0
+
         switch direction {
         case .North:
-            var start = rowOrCol
-            let temp = boxes[start]
-            for _ in 1..<rows {
-                let next = start + columns
-                boxes[start] = boxes[next]
-                start = next
-            }
-            boxes[start] = temp
+            start = rowOrCol
+            temp = boxes[start]
+            end = rows - 1
+            increment = columns
         case .South:
-            var start = rowOrCol + ((rows-1) * columns)
-            let temp = boxes[start]
-            for _ in 1..<rows {
-                let prev = start - columns
-                boxes[start] = boxes[prev]
-                start = prev
-            }
-            boxes[start] = temp
-            break
+            start = rowOrCol + ((rows-1) * columns)
+            temp = boxes[start]
+            end = rows - 1
+            increment = -columns
         case .East:
-            break
+            start = (rowOrCol * columns) + (columns-1)
+            temp = boxes[start]
+            end = columns - 1
+            increment = -1
         case .West:
-            break
+            start = rowOrCol * columns
+            temp = boxes[start]
+            end = columns - 1
+            increment = 1
         }
+        
+        for _ in 0..<end {
+            let next = start + increment
+            boxes[start] = boxes[next]
+            start = next
+        }
+        
+        boxes[start] = temp
     }
 
     internal func _getAllRowColToMoveArray(rowcol: (Int,Int), direction: Direction) -> [(Int,Int)] {
@@ -335,24 +345,47 @@ struct Table : CustomStringConvertible, Codable {
 //b.rotate(.Left)
 
 var t = Table(rows: 5, columns: 5)
+//print(t.description)
+
+//t[1,2]
+//t[1,2] = Box.Linear(orientation: .Horizontal)
+//t[1,2]?.rotate(.Left)
+//t[1,2]
+//t.addBlock(block: Block(row: 0, col: 0, width: 3, heigth: 3))
+//print(t.description)
+
+
+////NORTH - SOUTH
+//t[0,2] = Box.Intersection(direction: .North)
+//t[1,2] = Box.Intersection(direction: .South)
+//t[2,2] = Box.Linear(orientation: .Horizontal)
+//t[3,2] = Box.Intersection(direction: .East)
+//t[4,2] = Box.Intersection(direction: .West)
+//print(t.description)
+//t.move(rowcol: (1, 2), direction: .South)
+//print(t.description)
+
+//EAST - WEST
+t[2,0] = Box.Intersection(direction: .North)
+t[2,1] = Box.Intersection(direction: .South)
+t[2,2] = Box.Linear(orientation: .Horizontal)
+t[2,3] = Box.Intersection(direction: .East)
+t[2,4] = Box.Intersection(direction: .West)
+print(t.description)
+//t.move(rowcol: (2, 2), direction: .East)
+t.addBlock(block: Block(row: 1, col: 2, width: 3, heigth: 3))
+t.move(rowcol: (1, 2), direction: .East)
 print(t.description)
 
-t[1,2]
-t[1,2] = Box.Linear(orientation: .Horizontal)
-t[1,2]?.rotate(.Left)
-t[1,2]
-t.addBlock(block: Block(row: 0, col: 0, width: 3, heigth: 3))
-print(t.description)
 
-t.move(rowcol: (3, 1), direction: .South)
 //t.move(rowcol: (3, 3), direction: .North)
-print(t.description)
+//print(t.description)
 
-let data = try JSONEncoder().encode(t)
-let string = String(data: data, encoding: .utf8)!
-print(string)
-
-let t2 = try JSONDecoder().decode(Table.self, from: data)
-print(t2.description)
+//let data = try JSONEncoder().encode(t)
+//let string = String(data: data, encoding: .utf8)!
+//print(string)
+//
+//let t2 = try JSONDecoder().decode(Table.self, from: data)
+//print(t2.description)
 
 
