@@ -230,75 +230,51 @@ struct Table : CustomStringConvertible, Codable {
         blocks.insert(block)
     }
     
-    mutating func move(row: Int, col: Int, direction: Direction) -> Int {
+    mutating func move(row: Int, col: Int, direction: Direction) {
         return self.move(rowcol: (row, col), direction: direction)
     }
 
-    mutating func move(rowcol: (Int, Int), direction: Direction) -> Int {
-        return self.move(rowcolArray: [rowcol], direction: direction)
-    }
-
-    mutating func move(rowcolArray: [(Int,Int)], direction: Direction) -> Int {
-        let cleanedRowColArray = _getCleanRowColArray(rowcolArray: rowcolArray, direction: direction)
-        let allRowColToMoveArray = _getAllRowColToMoveArray(rowcolArray: cleanedRowColArray, direction: direction)
+    mutating func move(rowcol: (Int, Int), direction: Direction) {
+        
+        let allRowColToMoveArray = _getAllRowColToMoveArray(rowcol: rowcol, direction: direction)
         let blocksToMoveSet = _getAllBlocksToMove(rowcolArray: allRowColToMoveArray)
         
-        print(blocksToMoveSet)
-        
-        
-        
-        
-        
-        
-        
-        
-        return 0
-    }
-    
-    internal func _getCleanRowColArray(rowcolArray: [(Int,Int)], direction: Direction) -> [(Int,Int)] {
-        var cleanedRowColArray = [(Int,Int)]()
-        
-        for rowcol in rowcolArray {
-            var found = false
-            
-            for existingRowCol in cleanedRowColArray {
-                switch direction {
-                case .North, .South:
-                    if rowcol.1 == existingRowCol.1 {
-                        found = true
-                    }
-                case .East, .West:
-                    if rowcol.0 == existingRowCol.0 {
-                        found = true
-                    }
-                }
-                
-                if found {
-                    break
-                }
+        var from = 0, to = 0
+
+        switch direction {
+        case .North, .South:
+            from = rowcol.1
+            to = rowcol.1
+            for block in blocksToMoveSet {
+                from = min(from, block.col)
+                to = max(to, block.col + block.width)
             }
-            
-            if !found {
-                cleanedRowColArray.append(rowcol)
+        case .East, .West:
+            from = rowcol.0
+            to = rowcol.0
+            for block in blocksToMoveSet {
+                from = min(from, block.row)
+                to = max(to, block.row + block.heigth)
             }
         }
+
+        print("from: \(from) to: \(to) direction: \(direction)")
         
-        return cleanedRowColArray
+        
+        
     }
-    
-    internal func _getAllRowColToMoveArray(rowcolArray: [(Int,Int)], direction: Direction) -> [(Int,Int)] {
+
+    internal func _getAllRowColToMoveArray(rowcol: (Int,Int), direction: Direction) -> [(Int,Int)] {
         var allRowColArray = [(Int,Int)]()
 
-        for rowcol in rowcolArray {
-            switch direction {
-            case .North, .South:
-                for i in 0..<rows {
-                    allRowColArray.append((i, rowcol.1))
-                }
-            case .East, .West:
-                for i in 0..<columns {
-                    allRowColArray.append((rowcol.0, i))
-                }
+        switch direction {
+        case .North, .South:
+            for i in 0..<rows {
+                allRowColArray.append((i, rowcol.1))
+            }
+        case .East, .West:
+            for i in 0..<columns {
+                allRowColArray.append((rowcol.0, i))
             }
         }
         
@@ -339,7 +315,7 @@ t[1,2] = Box.Linear(orientation: .Horizontal)
 t[1,2]?.rotate(.Left)
 t[1,2]
 t.addBlock(block: Block(row: 0, col: 0, width: 3, heigth: 3))
-t.move(rowcolArray: [(0, 3), (3, 2)], direction: .North)
+t.move(rowcol: (1, 2), direction: .North)
 
 let data = try JSONEncoder().encode(t)
 let string = String(data: data, encoding: .utf8)!
