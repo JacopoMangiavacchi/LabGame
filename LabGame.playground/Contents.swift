@@ -225,6 +225,80 @@ struct Table : CustomStringConvertible, Codable {
     mutating func addBlock(block: Block) {
         blocks.append(block)
     }
+    
+    mutating func move(row: Int, col: Int, direction: Direction) -> Int {
+        return self.move(rowcol: (row, col), direction: direction)
+    }
+
+    mutating func move(rowcol: (Int, Int), direction: Direction) -> Int {
+        return self.move(rowcolArray: [rowcol], direction: direction)
+    }
+
+    mutating func move(rowcolArray: [(Int,Int)], direction: Direction) -> Int {
+        let cleanedRowColArray = _getCleanRowColArray(rowcolArray: rowcolArray, direction: direction)
+        let allRowColToMoveArray = _getAllRowColToMoveArray(rowcolArray: cleanedRowColArray, direction: direction)
+        
+        print(allRowColToMoveArray)
+        
+        
+        
+        
+        
+        
+        
+        
+        return 0
+    }
+    
+    internal func _getCleanRowColArray(rowcolArray: [(Int,Int)], direction: Direction) -> [(Int,Int)] {
+        var cleanedRowColArray = [(Int,Int)]()
+        
+        for rowcol in rowcolArray {
+            var found = false
+            
+            for existingRowCol in cleanedRowColArray {
+                switch direction {
+                case .North, .South:
+                    if rowcol.1 == existingRowCol.1 {
+                        found = true
+                    }
+                case .East, .West:
+                    if rowcol.0 == existingRowCol.0 {
+                        found = true
+                    }
+                }
+                
+                if found {
+                    break
+                }
+            }
+            
+            if !found {
+                cleanedRowColArray.append(rowcol)
+            }
+        }
+        
+        return cleanedRowColArray
+    }
+    
+    internal func _getAllRowColToMoveArray(rowcolArray: [(Int,Int)], direction: Direction) -> [(Int,Int)] {
+        var allRowColArray = [(Int,Int)]()
+
+        for rowcol in rowcolArray {
+            switch direction {
+            case .North, .South:
+                for i in 0..<rows {
+                    allRowColArray.append((i, rowcol.1))
+                }
+            case .East, .West:
+                for i in 0..<columns {
+                    allRowColArray.append((rowcol.0, i))
+                }
+            }
+        }
+        
+        return allRowColArray
+    }
 }
 
 
@@ -244,6 +318,8 @@ t[1,2]
 t[1,2] = Box.Linear(orientation: .Horizontal)
 t[1,2]?.rotate(.Left)
 t[1,2]
+t.move(rowcolArray: [(1, 2), (3, 2)], direction: .North)
+
 
 t.addBlock(block: Block(row: 0, col: 0, width: 2, heigth: 2))
 
