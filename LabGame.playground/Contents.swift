@@ -247,21 +247,48 @@ struct Table : CustomStringConvertible, Codable {
             to = rowcol.1
             for block in blocksToMoveSet {
                 from = min(from, block.col)
-                to = max(to, block.col + block.width)
+                to = max(to, block.col + block.width - 1)
             }
         case .East, .West:
             from = rowcol.0
             to = rowcol.0
             for block in blocksToMoveSet {
                 from = min(from, block.row)
-                to = max(to, block.row + block.heigth)
+                to = max(to, block.row + block.heigth - 1)
             }
         }
 
-        print("from: \(from) to: \(to) direction: \(direction)")
-        
-        
-        
+        for i in from...to {
+            _moveEntireRowOrCol(rowOrCol: i, direction: direction)
+        }
+    }
+
+    internal mutating func _moveEntireRowOrCol(rowOrCol: Int, direction: Direction) {
+        switch direction {
+        case .North:
+            var start = rowOrCol
+            let temp = boxes[start]
+            for _ in 1..<rows {
+                let next = start + columns
+                boxes[start] = boxes[next]
+                start = next
+            }
+            boxes[start] = temp
+        case .South:
+            var start = rowOrCol + ((rows-1) * columns)
+            let temp = boxes[start]
+            for _ in 1..<rows {
+                let prev = start - columns
+                boxes[start] = boxes[prev]
+                start = prev
+            }
+            boxes[start] = temp
+            break
+        case .East:
+            break
+        case .West:
+            break
+        }
     }
 
     internal func _getAllRowColToMoveArray(rowcol: (Int,Int), direction: Direction) -> [(Int,Int)] {
@@ -315,7 +342,11 @@ t[1,2] = Box.Linear(orientation: .Horizontal)
 t[1,2]?.rotate(.Left)
 t[1,2]
 t.addBlock(block: Block(row: 0, col: 0, width: 3, heigth: 3))
-t.move(rowcol: (1, 2), direction: .North)
+print(t.description)
+
+t.move(rowcol: (3, 1), direction: .South)
+//t.move(rowcol: (3, 3), direction: .North)
+print(t.description)
 
 let data = try JSONEncoder().encode(t)
 let string = String(data: data, encoding: .utf8)!
