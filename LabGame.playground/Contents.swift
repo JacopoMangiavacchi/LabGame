@@ -171,15 +171,25 @@ enum Box : Rotate, CustomStringConvertible, Codable {
     }
 }
 
+struct Block : Codable {
+    let row: Int
+    let col: Int
+    let width: Int
+    let heigth: Int
+}
+
 struct Table : CustomStringConvertible, Codable {
     var rows: Int
     var columns: Int
     internal var boxes: [Box]
+    internal var blocks: [Block]
+
     
     init(rows: Int, columns: Int) {
         self.rows = rows
         self.columns = columns
         boxes = [Box](repeating: Box.None, count: rows * columns)
+        blocks = [Block]()
     }
     
     var description: String {
@@ -211,6 +221,10 @@ struct Table : CustomStringConvertible, Codable {
             }
         }
     }
+    
+    mutating func addBlock(block: Block) {
+        blocks.append(block)
+    }
 }
 
 
@@ -230,6 +244,8 @@ t[1,2]
 t[1,2] = Box.Linear(orientation: .Horizontal)
 t[1,2]?.rotate(.Left)
 t[1,2]
+
+t.addBlock(block: Block(row: 0, col: 0, width: 2, heigth: 2))
 
 let data = try JSONEncoder().encode(t)
 let string = String(data: data, encoding: .utf8)!
