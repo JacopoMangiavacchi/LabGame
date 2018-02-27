@@ -97,6 +97,91 @@ enum Box : Rotate, CustomStringConvertible, Codable {
         }
     }
     
+    func outputDirection() -> [Direction] {
+        var directions = [Direction]()
+        
+        switch self {
+        case .None:                                 // X
+            break
+        case .Cross:                                // +
+            break
+        case let .Linear(orientation):
+            switch orientation {
+            case .Horizontal:                       // -
+                break
+            case .Vertical:                         // |
+                break
+            }
+        case let .Curved(direction):
+            switch direction {
+            case .North:                            // L  ∧
+                break
+            case .East:                             // L  >
+                break
+            case .South:                            // L  ∨
+                break
+            case .West:                             // L  <
+                break
+            }
+        case let .Intersection(direction):
+            switch direction {
+            case .North:                            // ⊤
+                break
+            case .East:                             // ⊣
+                break
+            case .South:                            // ⊥
+                break
+            case .West:                             // ⊢
+                break
+            }
+        }
+        
+        return directions
+    }
+    
+    func inputDirection() -> [Direction] {
+        var directions = [Direction]()
+        
+        switch self {
+        case .None:                                 // X
+            break
+        case .Cross:                                // +
+            break
+        case let .Linear(orientation):
+            switch orientation {
+            case .Horizontal:                       // -
+                break
+            case .Vertical:                         // |
+                break
+            }
+        case let .Curved(direction):
+            switch direction {
+            case .North:                            // L  ∧
+                break
+            case .East:                             // L  >
+                break
+            case .South:                            // L  ∨
+                break
+            case .West:                             // L  <
+                break
+            }
+        case let .Intersection(direction):
+            switch direction {
+            case .North:                            // ⊤
+                break
+            case .East:                             // ⊣
+                break
+            case .South:                            // ⊥
+                break
+            case .West:                             // ⊢
+                break
+            }
+        }
+        
+        return directions
+    }
+
+    
     // Custom Encode / Decode
     // Enum with Associated Values Cannot Have a Raw Value and cannot be auto Codable
     
@@ -220,38 +305,22 @@ struct TableGraph : CustomStringConvertible, Codable {
         var pos = 0
         
         for box in boxes {
-            switch box {
-            case .None:                                 // X
-                break
-            case .Cross:                                // +
-                break
-            case let .Linear(orientation):
-                switch orientation {
-                case .Horizontal:                       // -
+            for outputDirection in box.outputDirection() {
+                switch outputDirection {
+                case .North:
+                    if let next = _north(pos: pos) {
+                        for inputDirection in boxes[next].inputDirection() {
+                            if inputDirection == .South {
+                                edges[pos].append(next)
+                                break
+                            }
+                        }
+                    }
+                case .East:
                     break
-                case .Vertical:                         // |
+                case .South:
                     break
-                }
-            case let .Curved(direction):
-                switch direction {
-                case .North:                            // L  ∧
-                    break
-                case .East:                             // L  >
-                    break
-                case .South:                            // L  ∨
-                    break
-                case .West:                             // L  <
-                    break
-                }
-            case let .Intersection(direction):
-                switch direction {
-                case .North:                            // ⊤
-                    break
-                case .East:                             // ⊣
-                    break
-                case .South:                            // ⊥
-                    break
-                case .West:                             // ⊢
+                case .West:
                     break
                 }
             }
@@ -273,6 +342,7 @@ struct TableGraph : CustomStringConvertible, Codable {
     internal func _west(pos: Int) -> Int? {
         return pos % columns > 0 ? pos - 1 : nil
     }
+    
     
     var description: String {
         var descriptionTable = String()
