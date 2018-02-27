@@ -425,6 +425,33 @@ struct TableGraph : CustomStringConvertible, Codable {
         return false
     }
 
+    mutating func shortestPath(fromRow: Int, fromCol: Int, toRow: Int, toCol: Int) -> [Direction]? {
+        return self.shortestPath(fromRowCol: (fromRow, fromCol), toRowCol: (toRow, toCol))
+    }
+    
+    mutating func shortestPath(fromPos: Int, toPos: Int) -> [Direction]? {
+        struct Path {
+            var directions: [Direction]
+            var pos: Int
+        }
+        
+        var visited = [Bool](repeating: false, count: rows * columns)
+        var queue = [Path]()
+        
+        queue.append(Path(directions: [Direction](), pos: fromPos))
+        
+        
+        
+        
+        
+        
+        return nil
+    }
+    
+    mutating func shortestPath(fromRowCol: (Int, Int), toRowCol: (Int, Int)) -> [Direction]? {
+        return self.shortestPath(fromPos: fromRowCol.1 * (fromRowCol.0 * columns), toPos: toRowCol.1 * (toRowCol.0 * columns))
+    }
+    
     internal mutating func _moveEntireRowOrCol(rowOrCol: Int, direction: Direction) {
         var temp: Box!
         var start = 0
@@ -562,6 +589,7 @@ t.addNonMovableBlock(block: Block(row: 4, col: 2, width: 1, heigth: 1))
 t.move(rowcol: (1, 2), direction: .East)
 print(t.description)
 
+print(t.shortestPath(fromRowCol: (2, 0), toRowCol: (2, 4)))
 
 //t.move(rowcol: (3, 3), direction: .North)
 //print(t.description)
