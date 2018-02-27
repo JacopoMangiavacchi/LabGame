@@ -228,20 +228,20 @@ struct TableGraph : CustomStringConvertible, Codable {
     var rows: Int
     var columns: Int
     internal var boxes: [Box]
-    internal var blocks: Set<Block>
+    internal var movableBlocks: Set<Block>
     internal var edges: [[Int]]
 
     private enum CodingKeys: String, CodingKey {
         case rows
         case columns
         case boxes
-        case blocks
+        case movableBlocks
     }
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         boxes = try container.decode([Box].self, forKey: .boxes)
-        blocks = try container.decode(Set<Block>.self, forKey: .blocks)
+        movableBlocks = try container.decode(Set<Block>.self, forKey: .movableBlocks)
         rows = try container.decode(Int.self, forKey: .rows)
         columns = try container.decode(Int.self, forKey: .columns)
         edges = [[Int]](repeating: [Int](), count: rows * columns)
@@ -252,7 +252,7 @@ struct TableGraph : CustomStringConvertible, Codable {
         self.rows = rows
         self.columns = columns
         boxes = [Box](repeating: Box.None, count: rows * columns)
-        blocks = Set<Block>()
+        movableBlocks = Set<Block>()
         edges = [[Int]](repeating: [Int](), count: rows * columns)
         forceReloadAllEdges()
     }
@@ -344,8 +344,8 @@ struct TableGraph : CustomStringConvertible, Codable {
         }
     }
 
-    mutating func addBlock(block: Block) {
-        blocks.insert(block)
+    mutating func addMovableBlock(block: Block) {
+        movableBlocks.insert(block)
     }
     
     mutating func rotate(row: Int, col: Int, rotation: Rotation) {
@@ -457,7 +457,7 @@ struct TableGraph : CustomStringConvertible, Codable {
     internal func _getAllBlocksToMove(rowcolArray: [(Int,Int)]) -> Set<Block> {
         var blocksToMoveSet = Set<Block>()
         
-        for block in blocks {
+        for block in movableBlocks {
             for rowcol in rowcolArray {
                 if block.containRowCol(rowcol: rowcol) {
                     blocksToMoveSet.insert(block)
@@ -510,7 +510,7 @@ t[2,3] = Box.Intersection(direction: .East)
 t[2,4] = Box.Intersection(direction: .West)
 print(t.description)
 //t.move(rowcol: (2, 2), direction: .East)
-t.addBlock(block: Block(row: 1, col: 2, width: 3, heigth: 3))
+t.addMovableBlock(block: Block(row: 1, col: 2, width: 3, heigth: 3))
 t.move(rowcol: (1, 2), direction: .East)
 print(t.description)
 
