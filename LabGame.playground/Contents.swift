@@ -182,18 +182,41 @@ struct Block : Codable, Hashable, Equatable {
     }
 }
 
-struct Table : CustomStringConvertible, Codable {
+struct TableGraph : CustomStringConvertible, Codable {
     var rows: Int
     var columns: Int
     internal var boxes: [Box]
     internal var blocks: Set<Block>
+    internal var edges: [[Int]]
 
+    private enum CodingKeys: String, CodingKey {
+        case rows
+        case columns
+        case boxes
+        case blocks
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        boxes = try container.decode([Box].self, forKey: .boxes)
+        blocks = try container.decode(Set<Block>.self, forKey: .blocks)
+        rows = try container.decode(Int.self, forKey: .rows)
+        columns = try container.decode(Int.self, forKey: .columns)
+        edges = [[Int]](repeating: [Int](), count: rows * columns)
+        forceReloadEdges()
+    }
     
     init(rows: Int, columns: Int) {
         self.rows = rows
         self.columns = columns
         boxes = [Box](repeating: Box.None, count: rows * columns)
         blocks = Set<Block>()
+        edges = [[Int]](repeating: [Int](), count: rows * columns)
+        forceReloadEdges()
+    }
+
+    mutating func forceReloadEdges() {
+        
     }
     
     var description: String {
@@ -335,6 +358,7 @@ struct Table : CustomStringConvertible, Codable {
 }
 
 
+
 //var b = Box.Cross
 //b.rotate(.Left)
 //b = .Linear(orientation: .Horizontal)
@@ -344,7 +368,7 @@ struct Table : CustomStringConvertible, Codable {
 //b = .Intersection(direction: .North)
 //b.rotate(.Left)
 
-var t = Table(rows: 5, columns: 5)
+var t = TableGraph(rows: 5, columns: 5)
 //print(t.description)
 
 //t[1,2]
@@ -381,11 +405,11 @@ print(t.description)
 //t.move(rowcol: (3, 3), direction: .North)
 //print(t.description)
 
-//let data = try JSONEncoder().encode(t)
-//let string = String(data: data, encoding: .utf8)!
-//print(string)
-//
-//let t2 = try JSONDecoder().decode(Table.self, from: data)
-//print(t2.description)
+let data = try JSONEncoder().encode(t)
+let string = String(data: data, encoding: .utf8)!
+print(string)
+
+let t2 = try JSONDecoder().decode(TableGraph.self, from: data)
+print(t2.description)
 
 
