@@ -229,6 +229,7 @@ struct TableGraph : CustomStringConvertible, Codable {
     var columns: Int
     internal var boxes: [Box]
     internal var movableBlocks: Set<Block>
+    internal var nonMovableBlocks: Set<Block>
     internal var edges: [[Int]]
 
     private enum CodingKeys: String, CodingKey {
@@ -236,12 +237,14 @@ struct TableGraph : CustomStringConvertible, Codable {
         case columns
         case boxes
         case movableBlocks
+        case nonMovableBlocks
     }
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         boxes = try container.decode([Box].self, forKey: .boxes)
         movableBlocks = try container.decode(Set<Block>.self, forKey: .movableBlocks)
+        nonMovableBlocks = try container.decode(Set<Block>.self, forKey: .nonMovableBlocks)
         rows = try container.decode(Int.self, forKey: .rows)
         columns = try container.decode(Int.self, forKey: .columns)
         edges = [[Int]](repeating: [Int](), count: rows * columns)
@@ -253,6 +256,7 @@ struct TableGraph : CustomStringConvertible, Codable {
         self.columns = columns
         boxes = [Box](repeating: Box.None, count: rows * columns)
         movableBlocks = Set<Block>()
+        nonMovableBlocks = Set<Block>()
         edges = [[Int]](repeating: [Int](), count: rows * columns)
         forceReloadAllEdges()
     }
@@ -348,6 +352,10 @@ struct TableGraph : CustomStringConvertible, Codable {
         movableBlocks.insert(block)
     }
     
+    mutating func addNonMovableBlock(block: Block) {
+        nonMovableBlocks.insert(block)
+    }
+
     mutating func rotate(row: Int, col: Int, rotation: Rotation) {
         return self.rotate(rowcol: (row, col), rotation: rotation)
     }
