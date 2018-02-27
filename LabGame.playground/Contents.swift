@@ -496,8 +496,22 @@ struct TableGraph : CustomStringConvertible, Codable {
     }
     
     internal func  _isNonMovable(rowOrCol: Int, direction: Direction) -> Bool {
-        
-        
+        for block in nonMovableBlocks {
+            switch direction {
+            case .North, .South:
+                for i in 0..<rows {
+                    if block.containRowCol(rowcol: (i, rowOrCol)) {
+                        return true
+                    }
+                }
+            case .East, .West:
+                for i in 0..<columns {
+                    if block.containRowCol(rowcol: (rowOrCol, i)) {
+                        return true
+                    }
+                }
+            }
+        }
         
         return false
     }
@@ -544,6 +558,7 @@ t[2,4] = Box.Intersection(direction: .West)
 print(t.description)
 //t.move(rowcol: (2, 2), direction: .East)
 t.addMovableBlock(block: Block(row: 1, col: 2, width: 3, heigth: 3))
+t.addNonMovableBlock(block: Block(row: 4, col: 2, width: 1, heigth: 1))
 t.move(rowcol: (1, 2), direction: .East)
 print(t.description)
 
