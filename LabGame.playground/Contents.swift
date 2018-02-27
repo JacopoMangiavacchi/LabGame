@@ -38,8 +38,8 @@ enum Box : Rotate, CustomStringConvertible, Codable {
     case None                               // X
     case Cross                              // +
     case Linear(orientation: Orientation)   // - |
-    case Curved(direction: Direction)       // L  ∨∧><
-    case Intersection(direction: Direction) // T  ⊤⊣⊥⊢
+    case Curved(direction: Direction)       // L ∧>∨<
+    case Intersection(direction: Direction) // ⊤⊣⊥⊢
     
     mutating func rotate(_ rotation: Rotation) {
         switch self {
@@ -62,7 +62,7 @@ enum Box : Rotate, CustomStringConvertible, Codable {
     var description: String {
         switch self {
         case .None:
-            return "X"
+            return "x"
         case .Cross:
             return "+"
         case let .Linear(orientation):
@@ -75,11 +75,11 @@ enum Box : Rotate, CustomStringConvertible, Codable {
         case let .Curved(direction):
             switch direction {
             case .North:
-                return "∨"
-            case .East:
                 return "∧"
-            case .South:
+            case .East:
                 return ">"
+            case .South:
+                return "∨"
             case .West:
                 return "<"
             }
@@ -203,7 +203,7 @@ struct TableGraph : CustomStringConvertible, Codable {
         rows = try container.decode(Int.self, forKey: .rows)
         columns = try container.decode(Int.self, forKey: .columns)
         edges = [[Int]](repeating: [Int](), count: rows * columns)
-        forceReloadEdges()
+        forceReloadAllEdges()
     }
     
     init(rows: Int, columns: Int) {
@@ -212,11 +212,66 @@ struct TableGraph : CustomStringConvertible, Codable {
         boxes = [Box](repeating: Box.None, count: rows * columns)
         blocks = Set<Block>()
         edges = [[Int]](repeating: [Int](), count: rows * columns)
-        forceReloadEdges()
+        forceReloadAllEdges()
     }
 
-    mutating func forceReloadEdges() {
+    mutating func forceReloadAllEdges() {
+        edges = [[Int]](repeating: [Int](), count: rows * columns)
+        var pos = 0
         
+        for box in boxes {
+            switch box {
+            case .None:                                 // X
+                break
+            case .Cross:                                // +
+                break
+            case let .Linear(orientation):
+                switch orientation {
+                case .Horizontal:                       // -
+                    break
+                case .Vertical:                         // |
+                    break
+                }
+            case let .Curved(direction):
+                switch direction {
+                case .North:                            // L  ∧
+                    break
+                case .East:                             // L  >
+                    break
+                case .South:                            // L  ∨
+                    break
+                case .West:                             // L  <
+                    break
+                }
+            case let .Intersection(direction):
+                switch direction {
+                case .North:                            // ⊤
+                    break
+                case .East:                             // ⊣
+                    break
+                case .South:                            // ⊥
+                    break
+                case .West:                             // ⊢
+                    break
+                }
+            }
+            
+            pos += 1
+        }
+    }
+    
+    //TODO: FEATURE: Replace nil with the opposite to let the Shortest Path Algorithm (AI) shortcuts outside the inner of the tablegraph
+    internal func _north(pos: Int) -> Int? {
+        return pos - columns >= 0 ? pos - columns : nil
+    }
+    internal func _east(pos: Int) -> Int? {
+        return pos % columns < columns - 1 ? pos + 1 : nil
+    }
+    internal func _south(pos: Int) -> Int? {
+        return pos + columns < (rows*columns) ? pos + columns : nil
+    }
+    internal func _west(pos: Int) -> Int? {
+        return pos % columns > 0 ? pos - 1 : nil
     }
     
     var description: String {
@@ -253,12 +308,20 @@ struct TableGraph : CustomStringConvertible, Codable {
         blocks.insert(block)
     }
     
+    mutating func rotate(row: Int, col: Int, rotation: Rotation) {
+        return self.rotate(rowcol: (row, col), rotation: rotation)
+    }
+
+    mutating func rotate(rowcol: (Int, Int), rotation: Rotation) {
+        boxes[(rowcol.0 * columns) + rowcol.1].rotate(rotation)
+        forceReloadAllEdges() //TODO: OPTIMIZE _forceReloadEdge(row: rowcol.0, col: rowcol.1)
+    }
+    
     mutating func move(row: Int, col: Int, direction: Direction) {
         return self.move(rowcol: (row, col), direction: direction)
     }
 
     mutating func move(rowcol: (Int, Int), direction: Direction) {
-        
         let allRowColToMoveArray = _getAllRowColToMoveArray(rowcol: rowcol, direction: direction)
         let blocksToMoveSet = _getAllBlocksToMove(rowcolArray: allRowColToMoveArray)
         
@@ -284,6 +347,8 @@ struct TableGraph : CustomStringConvertible, Codable {
         for i in from...to {
             _moveEntireRowOrCol(rowOrCol: i, direction: direction)
         }
+        
+        forceReloadAllEdges()
     }
 
     internal mutating func _moveEntireRowOrCol(rowOrCol: Int, direction: Direction) {
@@ -412,4 +477,9 @@ print(string)
 let t2 = try JSONDecoder().decode(TableGraph.self, from: data)
 print(t2.description)
 
-
+0 % 5
+2 % 5
+4 % 5
+5 % 5
+9 % 5
+0 % 5
