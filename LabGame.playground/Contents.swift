@@ -9,7 +9,7 @@ protocol Rotate {
 }
 
 enum Orientation : Int, Rotate, Codable  {
-    case Horizontal, Vertical // 2
+    case Vertical, Horizontal  // 2
     
     mutating func rotate(_ rotation: Rotation) {
         self = Orientation(rawValue: (self.rawValue + 1) % 2)!
@@ -32,6 +32,14 @@ enum Direction : Int, Rotate, Codable  {
             }
         }
     }
+}
+
+enum BoxType : String, Codable {
+    case None                               // X
+    case Cross                              // +
+    case Linear                             // - |
+    case Curved                             // L ∧>∨<
+    case Intersection                       // ⊤⊣⊥⊢
 }
 
 enum Box : Rotate, CustomStringConvertible, Codable {
@@ -143,13 +151,12 @@ enum Box : Rotate, CustomStringConvertible, Codable {
     // Enum with Associated Values Cannot Have a Raw Value and cannot be auto Codable
     
     struct BoxStruct : Codable {
-        let rawValue: Int
+        let type: BoxType
         let orientation: Orientation?
         let direction: Direction?
     }
     
     enum DecodeError : Error {
-        case WrongRawValue
         case MissingOrientation
         case MissingDirection
     }
@@ -157,59 +164,57 @@ enum Box : Rotate, CustomStringConvertible, Codable {
     init(from decoder: Decoder) throws {
         let boxStruct = try BoxStruct(from: decoder)
         
-        switch boxStruct.rawValue {
-        case 0:
+        switch boxStruct.type {
+        case .None:
             self = Box.None
-        case 1:
+        case .Cross:
             self = Box.Cross
-        case 2:
+        case .Linear:
             if let o = boxStruct.orientation {
                 self = Box.Linear(orientation: o)
             }
             else {
                 throw DecodeError.MissingOrientation
             }
-        case 3:
+        case .Curved:
             if let d = boxStruct.direction {
                 self = Box.Curved(direction: d)
             }
             else {
                 throw DecodeError.MissingDirection
             }
-        case 4:
+        case .Intersection:
             if let d = boxStruct.direction {
                 self = Box.Intersection(direction: d)
             }
             else {
                 throw DecodeError.MissingDirection
             }
-        default:
-            throw DecodeError.WrongRawValue
         }
     }
     
     func encode(to encoder: Encoder) throws {
-        var rawValue = 0
+        var type: BoxType
         var orientation: Orientation?
         var direction: Direction?
         
         switch self {
         case .None:
-            rawValue = 0
+            type = .None
         case .Cross:
-            rawValue = 1
+            type = .Cross
         case let .Linear(o):
-            rawValue = 2
+            type = .Linear
             orientation = o
         case let .Curved(d):
-            rawValue = 3
+            type = .Curved
             direction = d
         case let .Intersection(d):
-            rawValue = 4
+            type = .Intersection
             direction = d
         }
 
-        try BoxStruct(rawValue: rawValue, orientation: orientation, direction: direction).encode(to: encoder)
+        try BoxStruct(type: type, orientation: orientation, direction: direction).encode(to: encoder)
     }
 }
 
