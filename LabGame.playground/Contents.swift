@@ -306,41 +306,29 @@ struct TableGraph : CustomStringConvertible, Codable {
         
         for box in boxes {
             for outputDirection in box.outputDirection() {
+                var _next: (Int) -> Int?
+                var expectedDirection: Direction
+                
                 switch outputDirection {
                 case .North:
-                    if let next = _north(pos: pos) {
-                        for inputDirection in boxes[next].inputDirection() {
-                            if inputDirection == .South {
-                                edges[pos].append(next)
-                                break
-                            }
-                        }
-                    }
+                    _next = _north
+                    expectedDirection = .South
                 case .East:
-                    if let next = _east(pos: pos) {
-                        for inputDirection in boxes[next].inputDirection() {
-                            if inputDirection == .West {
-                                edges[pos].append(next)
-                                break
-                            }
-                        }
-                    }
+                    _next = _east
+                    expectedDirection = .West
                 case .South:
-                    if let next = _south(pos: pos) {
-                        for inputDirection in boxes[next].inputDirection() {
-                            if inputDirection == .North {
-                                edges[pos].append(next)
-                                break
-                            }
-                        }
-                    }
+                    _next = _south
+                    expectedDirection = .North
                 case .West:
-                    if let next = _west(pos: pos) {
-                        for inputDirection in boxes[next].inputDirection() {
-                            if inputDirection == .East {
-                                edges[pos].append(next)
-                                break
-                            }
+                    _next = _west
+                    expectedDirection = .East
+                }
+
+                if let next = _next(pos) {
+                    for inputDirection in boxes[next].inputDirection() {
+                        if inputDirection == expectedDirection {
+                            edges[pos].append(next)
+                            break
                         }
                     }
                 }
