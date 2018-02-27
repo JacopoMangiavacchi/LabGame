@@ -374,18 +374,18 @@ struct TableGraph : CustomStringConvertible, Codable {
         forceReloadAllEdges() //TODO: OPTIMIZE _forceReloadEdge(row: rowcol.0, col: rowcol.1)
     }
     
-    mutating func move(row: Int, col: Int, direction: Direction) {
+    mutating func move(row: Int, col: Int, direction: Direction) -> Bool {
         return self.move(rowcol: (row, col), direction: direction)
     }
 
-    mutating func move(pos: Int, direction: Direction) {
+    mutating func move(pos: Int, direction: Direction) -> Bool {
         return self.move(rowcol: (pos / rows, pos % columns), direction: direction)
     }
     
-    mutating func move(rowcol: (Int, Int), direction: Direction) {
+    mutating func move(rowcol: (Int, Int), direction: Direction) -> Bool {
         let allRowColToMoveArray = _getAllRowColToMoveArray(rowcol: rowcol, direction: direction)
         let blocksToMoveSet = _getAllBlocksToMove(rowcolArray: allRowColToMoveArray)
-        
+
         var from = 0, to = 0
 
         switch direction {
@@ -404,12 +404,25 @@ struct TableGraph : CustomStringConvertible, Codable {
                 to = max(to, block.row + block.heigth - 1)
             }
         }
-
+        
+        var allMovable = true
         for i in from...to {
-            _moveEntireRowOrCol(rowOrCol: i, direction: direction)
+            if _isNonMovable(rowOrCol: i, direction: direction) {
+                allMovable = false
+                break
+            }
+        }
+
+        if allMovable {
+            for i in from...to {
+                _moveEntireRowOrCol(rowOrCol: i, direction: direction)
+            }
+            
+            forceReloadAllEdges()
+            return true
         }
         
-        forceReloadAllEdges()
+        return false
     }
 
     internal mutating func _moveEntireRowOrCol(rowOrCol: Int, direction: Direction) {
@@ -480,6 +493,13 @@ struct TableGraph : CustomStringConvertible, Codable {
         }
         
         return blocksToMoveSet
+    }
+    
+    internal func  _isNonMovable(rowOrCol: Int, direction: Direction) -> Bool {
+        
+        
+        
+        return false
     }
 }
 
