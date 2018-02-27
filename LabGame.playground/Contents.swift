@@ -317,11 +317,32 @@ struct TableGraph : CustomStringConvertible, Codable {
                         }
                     }
                 case .East:
-                    break
+                    if let next = _east(pos: pos) {
+                        for inputDirection in boxes[next].inputDirection() {
+                            if inputDirection == .West {
+                                edges[pos].append(next)
+                                break
+                            }
+                        }
+                    }
                 case .South:
-                    break
+                    if let next = _south(pos: pos) {
+                        for inputDirection in boxes[next].inputDirection() {
+                            if inputDirection == .North {
+                                edges[pos].append(next)
+                                break
+                            }
+                        }
+                    }
                 case .West:
-                    break
+                    if let next = _west(pos: pos) {
+                        for inputDirection in boxes[next].inputDirection() {
+                            if inputDirection == .East {
+                                edges[pos].append(next)
+                                break
+                            }
+                        }
+                    }
                 }
             }
             
