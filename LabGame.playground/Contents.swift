@@ -440,10 +440,46 @@ struct TableGraph : CustomStringConvertible, Codable {
         
         queue.append(Path(directions: [Direction](), pos: fromPos))
         
-        
-        
-        
-        
+        while !queue.isEmpty {
+            let currentPath = queue.removeFirst()
+            visited[currentPath.pos] = true
+            
+            if currentPath.pos == toPos {
+                return currentPath.directions
+            }
+            
+            for direction in boxes[currentPath.pos].directions {
+                var _next: (Int) -> Int?
+                var expectedDirection: Direction
+                
+                switch direction {
+                case .North:
+                    _next = _north
+                    expectedDirection = .South
+                case .East:
+                    _next = _east
+                    expectedDirection = .West
+                case .South:
+                    _next = _south
+                    expectedDirection = .North
+                case .West:
+                    _next = _west
+                    expectedDirection = .East
+                }
+                
+                if let next = _next(currentPath.pos) {
+                    for inputDirection in boxes[next].directions {
+                        if inputDirection == expectedDirection {
+                            //TODO: ADD TO QUEUE
+
+
+
+                            break
+                        }
+                    }
+                }
+            }
+        }
         
         return nil
     }
