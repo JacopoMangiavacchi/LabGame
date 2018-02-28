@@ -467,13 +467,12 @@ struct TableGraph : CustomStringConvertible, Codable {
                     expectedDirection = .East
                 }
                 
-                if let next = _next(currentPath.pos) {
+                if let next = _next(currentPath.pos), !visited[next] {
                     for inputDirection in boxes[next].directions {
                         if inputDirection == expectedDirection {
-                            //TODO: ADD TO QUEUE
-
-
-
+                            var directions = currentPath.directions
+                            directions.append(inputDirection)
+                            queue.append(Path(directions: directions, pos: next))
                             break
                         }
                     }
@@ -485,7 +484,7 @@ struct TableGraph : CustomStringConvertible, Codable {
     }
     
     mutating func shortestPath(fromRowCol: (Int, Int), toRowCol: (Int, Int)) -> [Direction]? {
-        return self.shortestPath(fromPos: fromRowCol.1 * (fromRowCol.0 * columns), toPos: toRowCol.1 * (toRowCol.0 * columns))
+        return self.shortestPath(fromPos: fromRowCol.1 + (fromRowCol.0 * columns), toPos: toRowCol.1 + (toRowCol.0 * columns))
     }
     
     internal mutating func _moveEntireRowOrCol(rowOrCol: Int, direction: Direction) {
@@ -626,6 +625,7 @@ t.move(rowcol: (1, 2), direction: .East)
 print(t.description)
 
 print(t.shortestPath(fromRowCol: (2, 0), toRowCol: (2, 4)))
+print("")
 
 //t.move(rowcol: (3, 3), direction: .North)
 //print(t.description)
